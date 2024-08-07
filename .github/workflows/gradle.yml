@@ -1,6 +1,3 @@
-# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
-
 name: Java CI with Gradle
 
 on:
@@ -10,60 +7,55 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
+  run-tests:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    steps:
+      - name: Run tests
+        run: |
+          ./gradlew test --info
+          if [ $? -ne 0 ]; then exit 1; fi
+      - name: Fail job if tests failed
+        if: failure()
+        run: echo "Tests failed, stopping the job"
 
+  gradle-build:
+    needs: run-tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/upload-artifact@v4
     - name: Setup JDK
       uses: actions/setup-java@v4
       with:
         java-version: '21'
         distribution: 'temurin'
-
-    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
       with:
         gradle-version: current
-
     - name: Make gradlew executable
       run: chmod +x ./gradlew
-
     - name: Build with Gradle Wrapper
       run: ./gradlew build
+    - name: Move JAR to workspace
+      run: mv build/libs/*.jar $GITHUB_WORKSPACE/built.jar
 
-    # if exit status not equal to 0 then exit 1
-    - name: Run Tests
-      run: |
-        ./gradlew test --info
-        if [ $? -ne 0 ]; then exit 1; fi
-
-    # - name: Fail Job if Tests Failed
-    #   run: echo "Tests failed, stopping the job"
-    #        if [[ $(./gradlew test --quiet) != "BUILD SUCCESSFUL" ]]; then exit 1; fi
-
-    - name: Fail Job if Tests Failed
-      if: failure()
-      run: echo "Tests failed, stopping the job"
-
-  dependency-submission:
-
+  upload-jar:
+    needs: gradle-build
     runs-on: ubuntu-latest
     permissions:
       contents: write
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Setup JDK
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
+      - uses: actions/checkout@v4
+      - name: Upload JAR from workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: MRT-artifact
+          path: built.jar
+          retention-days: 1
+          overwrite: true
 
-    # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
-    - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v4
