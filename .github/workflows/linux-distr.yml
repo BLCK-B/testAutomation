@@ -41,6 +41,9 @@ jobs:
         echo 'files:' >> AppImage.yml
         echo '  - artifact.jar' >> AppImage.yml
         echo '  - AppRun' >> AppImage.yml
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
         
     - name: Build AppImage
       run: |
