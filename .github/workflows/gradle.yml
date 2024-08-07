@@ -34,7 +34,7 @@ jobs:
     - name: Build with Gradle Wrapper
       run: ./gradlew build
     - name: Move JAR to workspace
-      run: mv build/libs/*.jar $GITHUB_WORKSPACE/built.jar
+      run: mv build/libs/*.jar $GITHUB_WORKSPACE/
 
   upload-jar:
     needs: gradle-test-build
