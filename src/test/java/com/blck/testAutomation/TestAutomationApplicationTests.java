@@ -11,7 +11,7 @@ class TestAutomationApplicationTests {
 
 	@Test
 	void simpleTest() {
-		fail("simulated fail");
+//		fail("simulated fail");
 	}
 
 }
