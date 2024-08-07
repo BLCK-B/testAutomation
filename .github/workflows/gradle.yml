@@ -12,6 +12,13 @@ jobs:
     permissions:
       contents: read
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
       - name: Run tests
         run: |
           ./gradlew test --info
