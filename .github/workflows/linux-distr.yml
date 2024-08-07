@@ -1,0 +1,53 @@
+name: Linux distribution
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Temurin JDK version'
+        required: true
+        default: '21'
+
+jobs:
+  build-appimage:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK ${{ github.event.inputs.version }}
+      uses: actions/setup-java@v4
+      with:
+        java-version: '${{ github.event.inputs.version }}'
+        distribution: 'temurin'
+      
+    - name: Download JAR artifact
+      run: |
+        curl -L https://github.com/BLCK-B/testAutomation/actions/runs/10282981442/artifacts/1785160093 -o artifact.jar
+        
+    - name: Create AppRun
+      run: |
+        echo '#!/bin/bash' > AppRun
+        echo 'java -jar "$APPDIR"/artifact.jar' >> AppRun
+        chmod +x AppRun
+        
+    - name: Create AppImage.yml
+      run: |
+        echo 'version: 1' > AppImage.yml
+        echo 'app: myapp' >> AppImage.yml
+        echo 'targets:' >> AppImage.yml
+        echo '  - type: appimage' >> AppImage.yml
+        echo '    arch: x86_64' >> AppImage.yml
+        echo 'files:' >> AppImage.yml
+        echo '  - artifact.jar' >> AppImage.yml
+        echo '  - AppRun' >> AppImage.yml
+        
+    - name: Build AppImage
+      run: |
+        ./gradlew appImage
+
+    - name: Upload AppImage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: myapp-linux
+        path: build/myapp-*.AppImage
