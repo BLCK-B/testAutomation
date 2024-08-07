@@ -10,7 +10,7 @@ jobs:
   gradle-test-build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
     - uses: actions/checkout@v4
     - name: Setup JDK
@@ -33,21 +33,10 @@ jobs:
       run: echo "Tests failed, stopping the job"
     - name: Build with Gradle Wrapper
       run: ./gradlew build
-    - name: Move JAR to workspace
-      run: mv build/libs/*.jar $GITHUB_WORKSPACE/
-
-  upload-jar:
-    needs: gradle-test-build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Upload JAR from workspace
-        uses: actions/upload-artifact@v4
-        with:
-          name: MRT-artifact
-          path: built.jar
-          retention-days: 1
-          overwrite: true
-
+    - name: Upload JAR artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MRT-artifact
+        path: build/libs/*.jar
+        retention-days: 1
+        overwrite: true
