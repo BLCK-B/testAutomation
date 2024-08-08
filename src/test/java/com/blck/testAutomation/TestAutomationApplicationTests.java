@@ -11,7 +11,6 @@ class TestAutomationApplicationTests {
 
 	@Test
 	void simpleTest() {
-		System.out.println("testing");
 		fail("simulated fail");
 	}
 
